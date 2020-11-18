@@ -37,6 +37,10 @@ public class UserController {
             status.setSuccess(false);
             status.addErrors("Role/roles not found");
         }
+        if (rolesId.length == 0){
+            status.setSuccess(false);
+            status.addErrors("Argument roles is empty");
+        }
         if (userRepository.existsById(login)){
             status.setSuccess(false);
             status.addErrors("This login already exists");
@@ -88,15 +92,21 @@ public class UserController {
                   @RequestParam("login")String login,
                   @RequestParam("password")String password,
                   @RequestParam(value = "roles")Long... roles) {
-        Status status = new Status(false);
+        Status status = new Status(true);
         User user;
         if (!userRepository.existsById(login)){
+            status.setSuccess(false);
             status.addErrors("Not find user by login");
-            return status.toString();
-        } else if (!ValidateData.isValidRoles(roleRepository,roles)){
+        }
+        if (roles.length == 0){
+            status.setSuccess(false);
+            status.addErrors("Argument roles is empty");
+        }
+        if (!ValidateData.isValidRoles(roleRepository,roles)){
             status.setSuccess(false);
             status.addErrors("Role/roles not found");
-        } else {
+        }
+        if (status.isSuccess()){
             user = userRepository.findByLogin(login);
             user.setName(name);
             user.setPassword(password);
