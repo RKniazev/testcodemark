@@ -89,10 +89,10 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    String update(@RequestParam("name")String name,
-                  @RequestParam("login")String login,
-                  @RequestParam("password")String password,
-                  @RequestParam(value = "roles")Long... roles) {
+    public String update(@RequestParam("name") String name,
+                         @RequestParam("login") String login,
+                         @RequestParam("password") String password,
+                         @RequestParam(value = "roles") Long... roles) {
         Status status = new Status(true);
         User user;
         if (!userRepository.existsById(login)){
