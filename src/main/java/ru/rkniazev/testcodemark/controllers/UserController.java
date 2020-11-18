@@ -1,15 +1,13 @@
 package ru.rkniazev.testcodemark.controllers;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.util.Pair;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.rkniazev.testcodemark.models.Role;
+import org.springframework.web.server.ResponseStatusException;
 import ru.rkniazev.testcodemark.models.RoleRepository;
 import ru.rkniazev.testcodemark.models.User;
 import ru.rkniazev.testcodemark.models.UserRepository;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class UserController {
@@ -23,34 +21,27 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public String add(@RequestParam("name")String name,
-               @RequestParam("login")String login,
-               @RequestParam("password")String password,
-               @RequestParam(value = "roles")Long... rolesId) {
-        Role role;
-        User user;
+    public String add(@RequestBody User user) {
+
         Status status = new Status(true);
-        if (!ValidateData.isValidPassword(password)){
+
+        if (!ValidateData.isValidPassword(user.getPassword())){
             status.setSuccess(false);
             status.addErrors("Password hasn't uppercase letter or number");
         }
-        if (!ValidateData.isValidRoles(roleRepository,rolesId)){
+        if (!ValidateData.isValidRoles(roleRepository,user)){
             status.setSuccess(false);
             status.addErrors("Role/roles not found");
         }
-        if (rolesId.length == 0){
+        if (user.getRoles().size() == 0){
             status.setSuccess(false);
             status.addErrors("Argument roles is empty");
         }
-        if (userRepository.existsById(login)){
+        if (userRepository.existsById(user.getLogin())){
             status.setSuccess(false);
             status.addErrors("This login already exists");
         }
         if (status.isSuccess()){
-            user = new User(name, login, password);
-            for (Long aLong : rolesId) {
-                user.setRole(roleRepository.findById(aLong).get());
-            }
             userRepository.saveAndFlush(user);
         }
 
@@ -58,25 +49,30 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    String get(@RequestParam(value = "login", required=false)String login) {
+    String get(@RequestBody(required=false) String str) {
         Status status = new Status(false);
-        if (login == null){
+        if (str == null){
             status.setSuccess(true);
             status.setBody(userRepository.findAll().toString());
-        } else if (!ValidateData.isValidUserId(userRepository,login)){
-            status.setSuccess(false);
-            status.addErrors("Not find user by login");
-        } else {
+            return status.toString();
+        }
+        String login =ValidateData.jsonStringToLoginUser(str);
+        if (ValidateData.isValidUserId(userRepository,login) && login != null){
+
             status.setSuccess(true);
             status.setBody(userRepository.findByLogin(login).toStringWithRoles());
+        } else {
+            status.setSuccess(false);
+            status.addErrors("Not find user by login");
         }
 
         return status.toString();
     }
 
-    @DeleteMapping("/users")
-    String delete(@RequestParam(value = "login")String login) {
+    @DeleteMapping(value = "/users")
+    public String delete(@RequestBody String str) {
         Status status = new Status(false);
+        String login = ValidateData.jsonStringToLoginUser(str);
         User user = userRepository.findByLogin(login);
         if (user == null){
             status.addErrors("Not find user by login");
@@ -89,33 +85,26 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public String update(@RequestParam("name") String name,
-                         @RequestParam("login") String login,
-                         @RequestParam("password") String password,
-                         @RequestParam(value = "roles") Long... roles) {
+    public String update(@RequestBody User user) {
         Status status = new Status(true);
-        User user;
-        if (!userRepository.existsById(login)){
+        if (!ValidateData.isValidPassword(user.getPassword())){
+            status.setSuccess(false);
+            status.addErrors("Password hasn't uppercase letter or number");
+        }
+        if (!userRepository.existsById(user.getLogin())){
             status.setSuccess(false);
             status.addErrors("Not find user by login");
         }
-        if (roles.length == 0){
+        if (user.getRoles().size() == 0){
             status.setSuccess(false);
             status.addErrors("Argument roles is empty");
         }
-        if (!ValidateData.isValidRoles(roleRepository,roles)){
+        if (!ValidateData.isValidRoles(roleRepository,user)){
             status.setSuccess(false);
             status.addErrors("Role/roles not found");
         }
         if (status.isSuccess()){
-            user = userRepository.findByLogin(login);
-            user.setName(name);
-            user.setPassword(password);
-            List<Role> listRole = Arrays.stream(roles)
-                    .map(it -> roleRepository.findById(it).get())
-                    .collect(Collectors.toList());
-            user.setRoles(listRole);
-            userRepository.deleteById(login);
+            userRepository.deleteById(user.getLogin());
             userRepository.saveAndFlush(user);
             status.setSuccess(true);
         }
