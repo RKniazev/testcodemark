@@ -8,10 +8,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +22,7 @@ public class User {
     private String login;
     @Column(name = "pass")
     private String password;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @Column(name = "roles")
     private List<Role> roles;
 

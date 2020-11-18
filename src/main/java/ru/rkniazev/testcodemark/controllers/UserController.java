@@ -1,5 +1,6 @@
 package ru.rkniazev.testcodemark.controllers;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import ru.rkniazev.testcodemark.models.Role;
 import ru.rkniazev.testcodemark.models.RoleRepository;
@@ -22,7 +23,7 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    String add(@RequestParam("name")String name,
+    public String add(@RequestParam("name")String name,
                @RequestParam("login")String login,
                @RequestParam("password")String password,
                @RequestParam(value = "roles")Long... rolesId) {
