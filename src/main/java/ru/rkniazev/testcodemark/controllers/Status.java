@@ -18,7 +18,7 @@ public class Status {
 
     public Status(boolean success){
         this.success = success;
-        this.listErrors = new ArrayList<String>();
+        this.listErrors = new ArrayList<>();
     }
 
     public boolean isSuccess() {
@@ -30,6 +30,7 @@ public class Status {
     }
 
     public void addErrors(String error){
+        success = false;
         listErrors.add(error);
     }
 
