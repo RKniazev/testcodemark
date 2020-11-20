@@ -30,7 +30,7 @@ public class UserController {
     @GetMapping("/users")
     String get(@RequestBody(required=false) String str) {
         Status status = new Status(true);
-        String login = ValidateData.jsonStringToLoginUser(str);
+        String login;
 
         if (str == null){
             status.setBody(userRepository.findAll().toString());
@@ -40,6 +40,7 @@ public class UserController {
         status = ValidateData.validateUserId(str);
 
         if (status.isSuccess()){
+            login = ValidateData.jsonStringToLoginUser(str);
             status.setBody(userRepository.findByLogin(login).toStringWithRoles());
         }
 
